@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import Sidebar from './components/Sidebar';
 import Topbar from './components/Topbar';
+import ProfileView from './components/ProfileView';
 // import DataTable from './components/DataTable';
 
 type Menu = {
@@ -45,6 +46,7 @@ const useResponsive = () => {
 export default function DashboardLayout() {
   const [selectedSubMenu, setSelectedSubMenu] = useState<Menu | null>(null);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [showProfile, setShowProfile] = useState(false); // Add this state
   const isMobile = useResponsive();
 
   // Auto-collapse sidebar on mobile
@@ -60,10 +62,19 @@ export default function DashboardLayout() {
 
   const handleSubMenuSelect = useCallback((menu: Menu) => {
     setSelectedSubMenu(menu);
+    setShowProfile(false); // Hide profile when selecting a menu
     if (isMobile) {
       setSidebarCollapsed(true);
     }
   }, [isMobile]);
+
+  // Add function to toggle profile view
+  const toggleProfile = useCallback(() => {
+    setShowProfile(prev => !prev);
+    if (showProfile) {
+      setSelectedSubMenu(null); // Clear selection when closing profile
+    }
+  }, [showProfile]);
 
   // Memoized sidebar component to prevent unnecessary re-renders
   const sidebarComponent = useMemo(() => (
@@ -80,11 +91,19 @@ export default function DashboardLayout() {
 
   return (
     <div className="flex h-screen w-full relative">
-      {/* Mobile Backdrop */}
+      {/* Mobile Backdrop for sidebar */}
       {!sidebarCollapsed && isMobile && (
         <div
           className="fixed inset-0 w-full h-full bg-black bg-opacity-50 z-10"
           onClick={toggleSidebar}
+        />
+      )}
+
+      {/* Mobile Backdrop for profile (when profile is open on mobile) */}
+      {showProfile && isMobile && (
+        <div
+          className="fixed inset-0 w-full h-full bg-black bg-opacity-50 z-30"
+          onClick={toggleProfile}
         />
       )}
 
@@ -106,15 +125,27 @@ export default function DashboardLayout() {
         <header className="bg-gray-100 h-[50px] flex-shrink-0">
           <Topbar
             onMenuToggle={toggleSidebar}
+            onProfileToggle={toggleProfile} // Pass the profile toggle function
             selectedSubMenu={selectedSubMenu}
             sidebarCollapsed={sidebarCollapsed}
+            showProfile={showProfile} // Pass the profile state
           />
         </header>
 
         {/* Page Content */}
-        <main className="flex-grow overflow-auto p-4 bg-white">
+        <main className="flex-grow overflow-auto p-4 bg-white relative">
+          {/* Profile View Overlay */}
+          {showProfile && (
+            <div className={`
+              absolute inset-0 z-0 bg-white
+              ${isMobile ? 'fixed inset-0 z-30' : 'absolute'}
+            `}>
+              <ProfileView onClose={toggleProfile} />
+            </div>
+          )}
+          
+          {/* Regular Content */}
           {selectedSubMenu ? (
-            // <DataTable submenu={selectedSubMenu} />
             <div className="p-4">
               <div className="flex items-center mb-4">
                 <i className={`fas ${selectedSubMenu.icon} text-2xl mr-3 text-blue-500`}></i>
@@ -144,7 +175,7 @@ export default function DashboardLayout() {
                 </div>
               )}
             </div>
-          ) : (
+          ) : !showProfile && ( // Only show this when profile is not open
             <div className="flex items-center justify-center h-full">
               <div className="text-center">
                 <i className="fas fa-list-alt text-4xl text-gray-300 mb-3"></i>

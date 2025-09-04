@@ -1,35 +1,34 @@
 'use client';
 
-import { API } from "@/config/api_urls";
-import axios from "axios"
-import { useState, useRef, useEffect } from 'react';
-
-type SubMenu = {
-  public_secret: string;
-  title: string;
-  icon: string;
-  actions?: Action[];
-};
-
-type Action = {
-  public_secret: string;
-  name: string;
-  description: string;
-}
+import { useState, useEffect, useRef } from 'react';
+import axios from 'axios';
+import { API } from '@/config/api_urls';
 
 type TopbarProps = {
-  selectedSubMenu: SubMenu | null;
+  selectedSubMenu: any;
   onMenuToggle: () => void;
+  onProfileToggle: () => void;
   sidebarCollapsed: boolean;
+  showProfile: boolean;
 };
 
-export default function Topbar({ selectedSubMenu, onMenuToggle, sidebarCollapsed }: TopbarProps) {
+export default function Topbar({ 
+  selectedSubMenu, 
+  onMenuToggle, 
+  onProfileToggle, 
+  sidebarCollapsed, 
+  showProfile 
+}: TopbarProps) {
   const [showDropdown, setShowDropdown] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const toggleDropdown = () => setShowDropdown(!showDropdown);
 
+  const handleProfileClick = () => {
+    onProfileToggle(); // Toggle profile view
+    setShowDropdown(false); // Close dropdown
+  };
 
   const handleLogout = async () => {
     try {
@@ -54,13 +53,13 @@ export default function Topbar({ selectedSubMenu, onMenuToggle, sidebarCollapsed
 
       localStorage.removeItem("token")
       localStorage.removeItem("refresh")
+      localStorage.removeItem("access") // Added this if you're using access token
       window.location.href = "/"
     } catch (error: any) {
       console.error("Logout error:", error.response?.data || error.message)
       alert("Logout failed")
     }
   }
-
 
   const handleFullscreenChange = () => {
     setIsFullscreen(!!document.fullscreenElement);
@@ -119,6 +118,17 @@ export default function Topbar({ selectedSubMenu, onMenuToggle, sidebarCollapsed
       </div>
 
       <div className="flex items-center py-1">
+        {/* Profile indicator when profile is open */}
+        {showProfile && (
+          <div className="mr-3 px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm flex items-center">
+            <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M5.121 17.804A9 9 0 1112 21a9 9 0 01-6.879-3.196z" />
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+            Viewing Profile
+          </div>
+        )}
+        
         <div className="relative" ref={dropdownRef}>
           <button
             className="flex items-center focus:outline-none"
@@ -128,7 +138,7 @@ export default function Topbar({ selectedSubMenu, onMenuToggle, sidebarCollapsed
             <img
               src="https://i.pravatar.cc/40"
               alt="User avatar"
-              className="rounded-full shadow-sm border w-8 h-8"
+              className={`rounded-full shadow-sm border w-8 h-8 ${showProfile ? 'ring-2 ring-blue-500' : ''}`}
               style={{ cursor: 'pointer' }}
             />
             {/* Chevron Down Icon */}
@@ -146,13 +156,16 @@ export default function Topbar({ selectedSubMenu, onMenuToggle, sidebarCollapsed
                 <div className="font-semibold text-gray-800">John Doe</div>
               </div>
               <hr className="my-1 border-gray-200" />
-              <button className="w-full flex items-center px-4 py-2 text-gray-700 hover:bg-gray-100 transition text-left">
+              <button 
+                className="w-full flex items-center px-4 py-2 text-gray-700 hover:bg-gray-100 transition text-left"
+                onClick={handleProfileClick}
+              >
                 {/* User Icon */}
                 <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M5.121 17.804A9 9 0 1112 21a9 9 0 01-6.879-3.196z" />
                   <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                 </svg>
-                Profile
+                {showProfile ? 'Close Profile' : 'View Profile'}
               </button>
               <button className="w-full flex items-center px-4 py-2 text-gray-700 hover:bg-gray-100 transition text-left">
                 {/* Gear Icon */}
