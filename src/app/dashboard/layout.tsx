@@ -4,6 +4,10 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import Sidebar from './components/Sidebar';
 import Topbar from './components/Topbar';
 import ProfileView from './components/ProfileView';
+import DataTable from './components/DataTable';
+import { title } from 'process';
+import { API } from '@/config/api_urls';
+import ActionPill from './components/ActionPill';
 // import DataTable from './components/DataTable';
 
 type Menu = {
@@ -23,23 +27,23 @@ type Action = {
 // Custom hook for responsive behavior
 const useResponsive = () => {
   const [isMobile, setIsMobile] = useState(false);
-  
+
   useEffect(() => {
     const checkIsMobile = () => {
       const mobile = window.innerWidth < 768;
       setIsMobile(mobile);
     };
-    
+
     // Initial check
     checkIsMobile();
-    
+
     // Add event listener
     window.addEventListener('resize', checkIsMobile);
-    
+
     // Cleanup
     return () => window.removeEventListener('resize', checkIsMobile);
   }, []);
-  
+
   return isMobile;
 };
 
@@ -143,9 +147,10 @@ export default function DashboardLayout() {
               <ProfileView onClose={toggleProfile} />
             </div>
           )}
-          
           {/* Regular Content */}
-          {selectedSubMenu ? (
+          {selectedSubMenu?.title === "Module" ? (
+            <DataTable endpoint={API.MODULE_LIST} title={selectedSubMenu?.title} />
+          ) : selectedSubMenu ? (
             <div className="p-4">
               <div className="flex items-center mb-4">
                 <i className={`fas ${selectedSubMenu.icon} text-2xl mr-3 text-blue-500`}></i>
@@ -157,7 +162,7 @@ export default function DashboardLayout() {
                   {selectedSubMenu.public_secret}
                 </code>
               </div>
-              
+
               {/* Display submenus if available */}
               {selectedSubMenu.submenus && selectedSubMenu.submenus.length > 0 && (
                 <div className="mt-6">

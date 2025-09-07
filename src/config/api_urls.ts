@@ -11,4 +11,7 @@ export const API = {
   LOGOUT: `${BASE_URL}auth/logout/`,
   PROFILE: `${BASE_URL}user/profile/`,
   MENUS: `${BASE_URL}user/menu-list/`,
+  MODULE_LIST: `${BASE_URL}base/module-list/`,
+  MODULE_CREATE: `${BASE_URL}base/create-module/`,
+  MODULE_UPDATE: `${BASE_URL}base/update-module/`,
 }
